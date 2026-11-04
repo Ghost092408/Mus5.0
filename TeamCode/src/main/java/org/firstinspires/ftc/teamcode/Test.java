@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -7,6 +8,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
@@ -19,11 +25,10 @@ public class Test extends LinearOpMode {
       DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "dreaptaSpate");
       DcMotorEx intake = hardwareMap.get(DcMotorEx.class, "intake");
       
-//      ServoImplEx turret = hardwareMap.get(ServoImplEx.class, "turret");
-//      ServoImplEx limba = hardwareMap.get(ServoImplEx.class, "limba");
-
+      ServoImplEx turret = hardwareMap.get(ServoImplEx.class, "turret");
+      ServoImplEx limba = hardwareMap.get(ServoImplEx.class, "limba");
       
-//      GoBildaPinpointDriver odom = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+      GoBildaPinpointDriver odom = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
       
       frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
       frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -53,13 +58,13 @@ public class Test extends LinearOpMode {
          hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
       }
       
-//      odom.setOffsets(-84.0, -168.0, DistanceUnit.MM);
-//      odom.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-//      odom.setEncoderDirections(
-//         GoBildaPinpointDriver.EncoderDirection.FORWARD,
-//         GoBildaPinpointDriver.EncoderDirection.FORWARD
-//      );
-//      odom.resetPosAndIMU();
+      odom.setOffsets(-84.0, -168.0, DistanceUnit.MM);
+      odom.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+      odom.setEncoderDirections(
+         GoBildaPinpointDriver.EncoderDirection.FORWARD,
+         GoBildaPinpointDriver.EncoderDirection.FORWARD
+      );
+      odom.resetPosAndIMU();
       
       waitForStart();
       
@@ -69,8 +74,8 @@ public class Test extends LinearOpMode {
          }
          
          //odometry
-//         odom.update();
-//         Pose2D pos = odom.getPosition();
+         odom.update();
+         Pose2D pos = odom.getPosition();
          
          // Store gamepad values from the previous loop iteration
          previousGamepad1.copy(currentGamepad1);
@@ -100,8 +105,8 @@ public class Test extends LinearOpMode {
             backRight.setPower(backRightPower);
          }
          
-//         turret.setPosition(turretPos);
-//         limba.setPosition(limbaPos);
+         turret.setPosition(turretPos);
+         limba.setPosition(limbaPos);
          
          //intake
          if (previousGamepad1.a && !currentGamepad1.a) {
@@ -119,22 +124,22 @@ public class Test extends LinearOpMode {
          if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left)
             if(intakePow > 0) intakePow -= 0.1;
          
-//         //turret position
-//         if(currentGamepad1.right_bumper && !previousGamepad1.right_bumper)
-//            turretPos += 0.1;
-//         if(currentGamepad1.left_bumper && !previousGamepad1.left_bumper)
-//            turretPos -= 0.1;
-//
-//         //ramp angle
-//         if(currentGamepad1.b && !previousGamepad1.b)
-//            limbaPos += 0.1;
-//         if(currentGamepad1.x && !previousGamepad1.x)
-//            limbaPos -= 0.1;
+         //turret position
+         if(currentGamepad1.right_bumper && !previousGamepad1.right_bumper)
+            turretPos += 0.1;
+         if(currentGamepad1.left_bumper && !previousGamepad1.left_bumper)
+            turretPos -= 0.1;
+
+         //ramp angle
+         if(currentGamepad1.b && !previousGamepad1.b)
+            limbaPos += 0.1;
+         if(currentGamepad1.x && !previousGamepad1.x)
+            limbaPos -= 0.1;
          
          //telemetry
-//         telemetry.addData("x", pos.getX(DistanceUnit.INCH));
-//         telemetry.addData("y", pos.getY(DistanceUnit.INCH));
-//         telemetry.addData("heading", pos.getHeading(AngleUnit.DEGREES));
+         telemetry.addData("x", pos.getX(DistanceUnit.INCH));
+         telemetry.addData("y", pos.getY(DistanceUnit.INCH));
+         telemetry.addData("heading", pos.getHeading(AngleUnit.DEGREES));
          telemetry.update();
       }
    }
