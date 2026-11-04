@@ -18,6 +18,7 @@ public class Test extends LinearOpMode {
       DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "stangaSpate");
       DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "dreaptaSpate");
       DcMotorEx intake = hardwareMap.get(DcMotorEx.class, "intake");
+      DcMotorEx turret = hardwareMap.get(DcMotorEx.class, "turret");
       
 //      ServoImplEx turret = hardwareMap.get(ServoImplEx.class, "turret");
 //      ServoImplEx limba = hardwareMap.get(ServoImplEx.class, "limba");
@@ -38,7 +39,7 @@ public class Test extends LinearOpMode {
       boolean drivingState = true;
       
       double turretPos = 0, limbaPos = 0;
-      double intakePow = 1;
+      double turretPow = 1;
       
       Gamepad currentGamepad1 = new Gamepad();
       Gamepad currentGamepad2 = new Gamepad();
@@ -107,16 +108,16 @@ public class Test extends LinearOpMode {
             intakeState = !intakeState;
          }
          if (intakeState) {
-            intake.setPower(intakePow);
+            intake.setPower(1);
          } else {
             intake.setPower(0);
          }
          
          //intake power
          if(currentGamepad1.dpad_right && !previousGamepad1.dpad_right)
-            if(intakePow < 1) intakePow += 0.1;
+            if(turretPow < 1) turretPow += 0.1;
          if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left)
-            if(intakePow > 0) intakePow -= 0.1;
+            if(turretPow > 0) turretPow -= 0.1;
          
 //         //turret position
 //         if(currentGamepad1.right_bumper && !previousGamepad1.right_bumper)
