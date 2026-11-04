@@ -20,7 +20,7 @@ public class Test extends LinearOpMode {
       DcMotorEx intake = hardwareMap.get(DcMotorEx.class, "intake");
       DcMotorEx turret = hardwareMap.get(DcMotorEx.class, "turret");
       
-//      ServoImplEx turret = hardwareMap.get(ServoImplEx.class, "turret");
+//      ServoImplEx turretAng = hardwareMap.get(ServoImplEx.class, "turret");
 //      ServoImplEx limba = hardwareMap.get(ServoImplEx.class, "limba");
       
 //      GoBildaPinpointDriver odom = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
@@ -36,10 +36,11 @@ public class Test extends LinearOpMode {
       intake.setDirection(DcMotorSimple.Direction.REVERSE);
       
       boolean intakeState = false;
+      boolean turretState = false;
       boolean drivingState = true;
       
       double turretPos = 0, limbaPos = 0;
-      double turretPow = 1;
+      double turretPow = 1, intakePow = 0.8;
       
       Gamepad currentGamepad1 = new Gamepad();
       Gamepad currentGamepad2 = new Gamepad();
@@ -100,7 +101,7 @@ public class Test extends LinearOpMode {
             backRight.setPower(backRightPower);
          }
          
-//         turret.setPosition(turretPos);
+//         turretAng.setPosition(turretPos);
 //         limba.setPosition(limbaPos);
          
          //intake
@@ -108,12 +109,28 @@ public class Test extends LinearOpMode {
             intakeState = !intakeState;
          }
          if (intakeState) {
-            intake.setPower(1);
+            intake.setPower(intakePow);
          } else {
             intake.setPower(0);
          }
          
          //intake power
+         if(currentGamepad1.b && !previousGamepad1.b)
+            if(intakePow < 1) intakePow += 0.1;
+         if(currentGamepad1.x && !previousGamepad1.x)
+            if(intakePow > 0) intakePow -= 0.1;
+         
+         //turret
+         if (previousGamepad1.y && !currentGamepad1.y) {
+            turretState = !turretState;
+         }
+         if (turretState) {
+            turret.setPower(turretPow);
+         } else {
+            turret.setPower(0);
+         }
+         
+         //turret power
          if(currentGamepad1.dpad_right && !previousGamepad1.dpad_right)
             if(turretPow < 1) turretPow += 0.1;
          if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left)
