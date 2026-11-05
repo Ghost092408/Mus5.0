@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.teleOps.debug;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,6 +12,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import java.util.List;
 
 @TeleOp
+@Configurable
 public class Test extends LinearOpMode {
    public void runOpMode() throws InterruptedException {
       DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "stangaFata");

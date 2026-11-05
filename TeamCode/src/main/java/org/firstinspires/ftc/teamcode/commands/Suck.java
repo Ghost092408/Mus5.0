@@ -11,9 +11,7 @@ public class Suck extends CommandBase {
    
    private TelemetryManager telemetryM;
    
-   public Suck(IntakeSubsystem intake) {
-      this.intake = intake;
-   }
+   public Suck(IntakeSubsystem intake) { this.intake = intake; }
    
    @Override
    public void initialize() { telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); }

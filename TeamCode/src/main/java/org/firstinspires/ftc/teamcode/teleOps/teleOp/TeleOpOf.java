@@ -1,13 +1,11 @@
-package org.firstinspires.ftc.teamcode;
-
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+package org.firstinspires.ftc.teamcode.teleOps.teleOp;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.command.button.GamepadButton;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
@@ -15,15 +13,15 @@ import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
+import org.firstinspires.ftc.teamcode.commands.Launch;
 import org.firstinspires.ftc.teamcode.commands.Suck;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 
-import kotlin.ConsistentCopyVisibility;
-
-@TeleOp(name = "TeleOp")
+@TeleOp (name = "TeleOpOf")
 @Configurable
-public class TeleOp extends OpMode {
+public class TeleOpOf extends OpMode {
    private TelemetryManager telemetryM;
    
    private Follower follower;
@@ -31,6 +29,7 @@ public class TeleOp extends OpMode {
    private GamepadEx gamepad;
    
    private IntakeSubsystem intake;
+   private TurretSubsystem turret;
    
    @Override
    public void init() {
@@ -41,22 +40,27 @@ public class TeleOp extends OpMode {
       
       gamepad = new GamepadEx(gamepad1);
       
-      //subsystems
+      //subsysteme
       {
          intake = new IntakeSubsystem(hardwareMap);
+         turret = new TurretSubsystem(hardwareMap);
       }
       
-      new GamepadButton(gamepad, GamepadKeys.Button.CROSS)
-         .toggleWhenPressed(new Suck(intake));
+      //buttoane
+     new GamepadButton(gamepad, GamepadKeys.Button.CROSS)
+        .toggleWhenPressed( new Suck(intake) );
+     new GamepadButton(gamepad, GamepadKeys.Button.DPAD_UP)
+        .toggleWhenPressed( new Launch(turret) );
    }
    
    @Override
-   public void loop(){
+   public void loop() {
       follower.update();
       telemetryM.update();
       
       CommandScheduler.getInstance().run();
       
+      //miscare - robot centric
       follower.manual(
          -gamepad1.left_stick_y,
          gamepad1.left_stick_x,
@@ -65,6 +69,7 @@ public class TeleOp extends OpMode {
       
       Pose pose = follower.pose();
       
+      //telemetrie
       telemetryM.debug("x: ", pose.x());
       telemetryM.debug("y: ", pose.y());
       telemetryM.debug("heading: ", Math.toDegrees(pose.heading()));
