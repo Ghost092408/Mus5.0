@@ -32,4 +32,8 @@ android {
     }
 }
 
+dependencies {
+    implementation "com.bylazar:panels:1.0.19"
+}
+
 apply from: '../build.dependencies.gradle'
