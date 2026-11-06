@@ -20,5 +20,5 @@ public class Suck extends CommandBase {
    public void execute() { intake.suge(); }
    
    @Override
-   public void end(boolean interrupted) { intake.stop(); }
+   public void end(boolean interrupted) { intake.store(); }
 }

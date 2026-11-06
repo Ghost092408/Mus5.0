@@ -50,7 +50,7 @@ public class TeleOpOf extends OpMode {
      new GamepadButton(gamepad, GamepadKeys.Button.CROSS)
         .toggleWhenPressed( new Suck(intake) );
      new GamepadButton(gamepad, GamepadKeys.Button.DPAD_UP)
-        .toggleWhenPressed( new Launch(turret) );
+        .toggleWhenPressed( new Launch(turret, intake) );
    }
    
    @Override

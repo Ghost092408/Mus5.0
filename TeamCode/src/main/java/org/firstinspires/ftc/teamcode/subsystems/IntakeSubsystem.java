@@ -28,7 +28,12 @@ public class IntakeSubsystem extends SubsystemBase {
    }
    
    public void stop() {
-      intake.set(1);
-      transfer.set(1);
+      intake.set(0);
+      transfer.set(0);
+   }
+   
+   public void store() {
+      intake.set(0.3);
+      transfer.set(-0.3);
    }
 }

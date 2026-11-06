@@ -43,8 +43,13 @@ public class TurretSubsystem {
       return flywheel.getVelocity();
    }
    
-   public boolean atSpeed(double tolerance) {
-      return Math.abs(targetVelocity - flywheel.getVelocity()) < tolerance;
+   public boolean atSpeed() {
+      return Math.abs(targetVelocity - flywheel.getVelocity()) < 10;
+   }
+   
+   public void stop() {
+      setSpeed(0);
+      update();
    }
    
    public void update() {

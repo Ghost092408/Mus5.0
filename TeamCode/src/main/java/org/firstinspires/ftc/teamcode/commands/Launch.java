@@ -4,14 +4,19 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
+import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 
 public class Launch extends CommandBase {
+   private final IntakeSubsystem intake;
    private final TurretSubsystem turret;
    
    private TelemetryManager telemetryM;
    
-   public Launch(TurretSubsystem turret) { this.turret = turret; }
+   public Launch(TurretSubsystem turret, IntakeSubsystem intake) {
+      this.intake = intake;
+      this.turret = turret;
+   }
    
    @Override
    public void initialize() { telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); }
@@ -20,11 +25,13 @@ public class Launch extends CommandBase {
    public void execute() {
       turret.setSpeed(2000);
       turret.update();
+      if(turret.atSpeed())
+         intake.suge();
    }
    
    @Override
    public void end(boolean interrupted) {
-      turret.setSpeed(0);
-      turret.update();
+      turret.stop();
+      intake.stop();
    }
 }
