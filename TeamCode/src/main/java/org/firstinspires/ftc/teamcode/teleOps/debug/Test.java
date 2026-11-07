@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleOps.debug;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -8,13 +9,24 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
 @TeleOp
 @Configurable
 public class Test extends LinearOpMode {
+   public static double turretPow = 1;
+   public static double rampPos = 0;
+   
    public void runOpMode() throws InterruptedException {
+      TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+      
       DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "stangaFata");
       DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "dreaptaFata");
       DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "stangaSpate");
@@ -23,7 +35,9 @@ public class Test extends LinearOpMode {
       DcMotorEx transfer = hardwareMap.get(DcMotorEx.class, "transfer");
       DcMotorEx turret = hardwareMap.get(DcMotorEx.class, "turret");
       
-//      GoBildaPinpointDriver odom = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+      ServoImplEx rampaAng = hardwareMap.get(ServoImplEx.class, "rampAng");
+      
+      GoBildaPinpointDriver odom = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
       
       frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
       frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -42,8 +56,6 @@ public class Test extends LinearOpMode {
       boolean turretState = false;
       boolean drivingState = true;
       
-      double turretPow = 1, intakePow = 1;
-      
       Gamepad currentGamepad1 = new Gamepad();
       Gamepad currentGamepad2 = new Gamepad();
       
@@ -57,13 +69,13 @@ public class Test extends LinearOpMode {
       }
       
       //odometrie
-//      odom.setOffsets(-84.0, -168.0, DistanceUnit.MM);
-//      odom.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-//      odom.setEncoderDirections(
-//         GoBildaPinpointDriver.EncoderDirection.FORWARD,
-//         GoBildaPinpointDriver.EncoderDirection.FORWARD
-//      );
-//      odom.resetPosAndIMU();
+      odom.setOffsets(-84.0, -168.0, DistanceUnit.MM);
+      odom.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+      odom.setEncoderDirections(
+         GoBildaPinpointDriver.EncoderDirection.FORWARD,
+         GoBildaPinpointDriver.EncoderDirection.FORWARD
+      );
+      odom.resetPosAndIMU();
       
       waitForStart();
       
@@ -73,8 +85,8 @@ public class Test extends LinearOpMode {
          }
          
          //odometrie
-//         odom.update();
-//         Pose2D pos = odom.getPosition();
+         odom.update();
+         Pose2D pos = odom.getPosition();
          
          // Store gamepad values from the previous loop iteration
          previousGamepad1.copy(currentGamepad1);
@@ -95,53 +107,55 @@ public class Test extends LinearOpMode {
          double frontRightPower = (y - x - rx) / denominator;
          double backRightPower = (y + x - rx) / denominator;
          
+         //miscare
          if(previousGamepad1.touchpad && !currentGamepad1.touchpad)
             drivingState = !drivingState;
          if (drivingState) {
-            //miscare
             frontLeft.setPower(frontLeftPower);
             backLeft.setPower(backLeftPower);
             frontRight.setPower(frontRightPower);
             backRight.setPower(backRightPower);
          }
          
+         rampaAng.setPosition(rampPos);
+         
          //intake
          if (previousGamepad1.a && !currentGamepad1.a) {
+            intakeStateR = false;
             intakeState = !intakeState;
          }
-         if (intakeState && !intakeStateR) {
-            intake.setPower(intakePow);
-         } else {
+         if(intakeState)
+            intake.setPower(1);
+         else if(!intakeStateR)
             intake.setPower(0);
-         }
          
          if (previousGamepad1.b && !currentGamepad1.b) {
+            intakeState = false;
             intakeStateR = !intakeStateR;
          }
-         if (intakeStateR && !intakeState) {
-            intake.setPower(-intakePow);
-         } else if(!intakeStateR && !intakeState) {
+         if(intakeStateR)
+            intake.setPower(-1);
+         else if(!intakeState)
             intake.setPower(0);
-         }
          
          //transfer
          if (previousGamepad1.x && !currentGamepad1.x) {
+            transferStateR = false;
             transferState = !transferState;
          }
-         if (transferState && !transferStateR) {
-            transfer.setPower(intakePow);
-         } else {
+         if(transferState)
+            transfer.setPower(1);
+         else if(!transferStateR)
             transfer.setPower(0);
-         }
          
          if (previousGamepad1.y && !currentGamepad1.y) {
+            transferState = false;
             transferStateR = !transferStateR;
          }
-         if (transferStateR && !transferState) {
-            transfer.setPower(-intakePow);
-         } else if(!transferStateR && !transferState) {
+         if(transferStateR)
+            transfer.setPower(-1);
+         else if(!transferState)
             transfer.setPower(0);
-         }
          
          //turret
          if (previousGamepad1.right_bumper && !currentGamepad1.right_bumper) {
@@ -153,24 +167,25 @@ public class Test extends LinearOpMode {
             turret.setPower(0);
          }
          
-         //intake power
-         if(currentGamepad1.dpad_up && !previousGamepad1.dpad_up)
-            if(intakePow < 1) intakePow += 0.1;
-         if(currentGamepad1.dpad_down && !previousGamepad1.dpad_down)
-            if(intakePow > 0) intakePow -= 0.1;
-         
          //turret power
          if(currentGamepad1.dpad_right && !previousGamepad1.dpad_right)
             if(turretPow < 1) turretPow += 0.1;
          if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left)
             if(turretPow > 0) turretPow -= 0.1;
          
+         //ramp position
+         if(currentGamepad1.dpad_up && !previousGamepad1.dpad_up)
+            if(rampPos < 1) rampPos += 0.01;
+         if(currentGamepad1.dpad_down && !previousGamepad1.dpad_down)
+            if(rampPos > 0) rampPos -= 0.01;
+         
          //telemetry
 //         telemetry.addData("x", pos.getX(DistanceUnit.INCH));
 //         telemetry.addData("y", pos.getY(DistanceUnit.INCH));
 //         telemetry.addData("heading", pos.getHeading(AngleUnit.DEGREES));
-         telemetry.addData("power: ", intakePow);
-         telemetry.update();
+         panelsTelemetry.addData("ramp angle", rampPos);
+         panelsTelemetry.addData("power turret", turretPow);
+         panelsTelemetry.update(telemetry);
       }
    }
 }

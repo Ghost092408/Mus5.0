@@ -27,6 +27,8 @@ public class Launch extends CommandBase {
       turret.update();
       if(turret.atSpeed())
          intake.suge();
+      
+      telemetryM.addData("viteza: ", turret.getVelocity());
    }
    
    @Override

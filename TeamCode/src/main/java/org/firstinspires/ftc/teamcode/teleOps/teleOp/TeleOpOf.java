@@ -14,6 +14,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
 import org.firstinspires.ftc.teamcode.commands.Launch;
+import org.firstinspires.ftc.teamcode.commands.Spit;
 import org.firstinspires.ftc.teamcode.commands.Suck;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
@@ -49,6 +50,8 @@ public class TeleOpOf extends OpMode {
       //buttoane
      new GamepadButton(gamepad, GamepadKeys.Button.CROSS)
         .toggleWhenPressed( new Suck(intake) );
+      new GamepadButton(gamepad, GamepadKeys.Button.CIRCLE)
+         .toggleWhenPressed( new Spit(intake) );
      new GamepadButton(gamepad, GamepadKeys.Button.DPAD_UP)
         .toggleWhenPressed( new Launch(turret, intake) );
    }
