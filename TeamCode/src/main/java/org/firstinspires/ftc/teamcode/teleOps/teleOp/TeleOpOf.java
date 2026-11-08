@@ -29,6 +29,8 @@ public class TeleOpOf extends OpMode {
    
    private GamepadEx gamepad;
    
+   static public double pula =0;
+   
    private IntakeSubsystem intake;
    private TurretSubsystem turret;
    
@@ -66,8 +68,8 @@ public class TeleOpOf extends OpMode {
       //miscare - robot centric
       follower.manual(
          -gamepad1.left_stick_y,
-         gamepad1.left_stick_x,
-         gamepad1.right_stick_x
+         -gamepad1.left_stick_x,
+         -gamepad1.right_stick_x
       );
       
       Pose pose = follower.pose();

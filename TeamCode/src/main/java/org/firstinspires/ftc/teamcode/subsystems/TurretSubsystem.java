@@ -12,8 +12,8 @@ import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 public class TurretSubsystem {
    private final MotorEx flywheel;
    
-   private final ServoEx turretAng;
-   private final ServoEx limba;
+//   private final ServoEx turretAng;
+//   private final ServoEx limba;
    
    public static double kP = 0;
    public static double kI = 0;
@@ -27,8 +27,8 @@ public class TurretSubsystem {
    public TurretSubsystem(HardwareMap hardwareMap) {
       flywheel = new MotorEx(hardwareMap, "turret");
       
-      turretAng = new ServoEx(hardwareMap, "turretAng");
-      limba = new ServoEx(hardwareMap, "limba");
+//      turretAng = new ServoEx(hardwareMap, "turretAng");
+//      limba = new ServoEx(hardwareMap, "limba");
       
       flywheel.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
       
