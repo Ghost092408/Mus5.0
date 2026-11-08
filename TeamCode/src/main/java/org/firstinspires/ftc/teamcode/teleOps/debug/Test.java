@@ -222,9 +222,9 @@ public class Test extends LinearOpMode {
             if(rampPos > 0) rampPos -= 0.01;
          
          //telemetry
-         telemetry.addData("x", pos.getX(DistanceUnit.INCH));
-         telemetry.addData("y", pos.getY(DistanceUnit.INCH));
-         telemetry.addData("heading", pos.getHeading(AngleUnit.DEGREES));
+         telemetry.addData("x: ", pos.getX(DistanceUnit.INCH));
+         telemetry.addData("y: ", pos.getY(DistanceUnit.INCH));
+         telemetry.addData("heading: ", pos.getHeading(AngleUnit.DEGREES));
          panelsTelemetry.addData("ramp angle", rampPos);
          panelsTelemetry.addData("power turret", turretSpeed);
          panelsTelemetry.addData("viteza tureta: ", turret.getVelocity());
