@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleOps.debug;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -9,31 +10,25 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+import com.seattlesolvers.solverslib.controller.PIDFController;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import java.util.List;
 
 @TeleOp
 @Configurable
 public class Test extends LinearOpMode {
-   public static double turretSpeed = 1;
+   public static double turretSpeed = 0;
    public static double rampPos = 0;
    
-   public static double kP = 0;
+   public static double kP = 0.0048;
    public static double kI = 0;
    public static double kD = 0;
-   public static double kF = 0;
-   
-   public static double nominalVoltage = 12;
+   public static double kF = 0.000595;
    
    public void runOpMode() throws InterruptedException {
       TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -50,7 +45,12 @@ public class Test extends LinearOpMode {
       
 //      ServoImplEx rampaAng = hardwareMap.get(ServoImplEx.class, "rampAng");
       
-      GoBildaPinpointDriver odom = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+      Follower follower;;
+      
+      follower = Constants.create(hardwareMap);
+      follower.update();
+      
+      PIDFController controller = new PIDFController(kP, kI, kD, kF);
       
       frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
       frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -72,13 +72,6 @@ public class Test extends LinearOpMode {
       boolean turretState = false;
       boolean drivingState = true;
       
-      double integralSum = 0;
-      double lastError = 0;
-      ElapsedTime pidTimer = new ElapsedTime();
-      
-      double batteryVoltage = battery.getVoltage();
-      ElapsedTime voltageTimer = new ElapsedTime();
-      
       Gamepad currentGamepad1 = new Gamepad();
       Gamepad currentGamepad2 = new Gamepad();
       
@@ -91,15 +84,6 @@ public class Test extends LinearOpMode {
          hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
       }
       
-      //odometrie
-      odom.setOffsets(-84.0, -168.0, DistanceUnit.MM);
-      odom.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-      odom.setEncoderDirections(
-         GoBildaPinpointDriver.EncoderDirection.FORWARD,
-         GoBildaPinpointDriver.EncoderDirection.FORWARD
-      );
-      odom.resetPosAndIMU();
-      
       waitForStart();
       
       while(opModeIsActive() && !isStopRequested()) {
@@ -108,8 +92,8 @@ public class Test extends LinearOpMode {
          }
          
          //odometrie
-         odom.update();
-         Pose2D pos = odom.getPosition();
+         follower.update();
+         Pose pose = follower.pose();
          
          // Store gamepad values from the previous loop iteration
          previousGamepad1.copy(currentGamepad1);
@@ -183,37 +167,14 @@ public class Test extends LinearOpMode {
          //turret PIDF
          if (previousGamepad1.right_bumper && !currentGamepad1.right_bumper) {
             turretState = !turretState;
+            controller.reset();
          }
-         
-         if (voltageTimer.seconds() > 0.5) {
-            batteryVoltage = battery.getVoltage();
-            voltageTimer.reset();
-         }
-         
-         double turretVelocity = turret.getVelocity();
-         double dt = pidTimer.seconds();
-         pidTimer.reset();
-         
-         double turretPower = 0;
          if (turretState) {
-            double error = turretSpeed - turretVelocity;
-            integralSum += error * dt;
-            double derivative = (error - lastError) / dt;
-            lastError = error;
-            
-            // kF gives the base power for the target speed, P/I/D correct the remaining error
-            turretPower = kF * turretSpeed + kP * error + kI * integralSum + kD * derivative;
-            
-            //voltage compensation
-            turretPower = turretPower * nominalVoltage / batteryVoltage;
-            
-            // never push the flywheel backwards to slow it down, just let it coast
-            turretPower = Range.clip(turretPower, 0, 1);
-         } else {
-            integralSum = 0;
-            lastError = 0;
+            controller.setPIDF(kP, kI, kD, kF * 12.0 / battery.getVoltage());
+            turret.setPower(controller.calculate(turret.getVelocity(), turretSpeed));
          }
-         turret.setPower(turretPower);
+         else
+            turret.setPower(0);
          
          //ramp position
          if(currentGamepad1.dpad_up && !previousGamepad1.dpad_up)
@@ -222,12 +183,16 @@ public class Test extends LinearOpMode {
             if(rampPos > 0) rampPos -= 0.01;
          
          //telemetry
-         telemetry.addData("x: ", pos.getX(DistanceUnit.INCH));
-         telemetry.addData("y: ", pos.getY(DistanceUnit.INCH));
-         telemetry.addData("heading: ", pos.getHeading(AngleUnit.DEGREES));
+         panelsTelemetry.addData("x: ", pose.x());
+         panelsTelemetry.addData("y: ", pose.y());
+         panelsTelemetry.addData("heading: ", Math.toDegrees(pose.heading()));
+         panelsTelemetry.addData("turret state: ", turretState);
          panelsTelemetry.addData("ramp angle", rampPos);
-         panelsTelemetry.addData("power turret", turretSpeed);
          panelsTelemetry.addData("viteza tureta: ", turret.getVelocity());
+         panelsTelemetry.addData("kF ", kF);
+         panelsTelemetry.addData("kP ", kP);
+         panelsTelemetry.addData("kI ", kI);
+         panelsTelemetry.addData("kD ", kD);
          panelsTelemetry.update(telemetry);
       }
    }

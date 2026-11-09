@@ -17,7 +17,7 @@ android {
         buildConfig = true
     }
 
-    compileSdkVersion 30
+    compileSdkVersion 37
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -30,10 +30,6 @@ android {
     testOptions {
         targetSdk 28
     }
-}
-
-dependencies {
-    implementation "com.bylazar:panels:1.0.8"
 }
 
 apply from: '../build.dependencies.gradle'

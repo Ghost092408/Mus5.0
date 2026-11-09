@@ -29,8 +29,6 @@ public class TeleOpOf extends OpMode {
    
    private GamepadEx gamepad;
    
-   static public double pula =0;
-   
    private IntakeSubsystem intake;
    private TurretSubsystem turret;
    
