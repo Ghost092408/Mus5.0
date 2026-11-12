@@ -12,10 +12,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.pedro.Drawing;
 
 import java.util.List;
 
@@ -23,12 +26,12 @@ import java.util.List;
 @Configurable
 public class Test extends LinearOpMode {
    public static double turretSpeed = 0;
-   public static double rampPos = 0;
+   public static double rampPos = 0.01;
    
-   public static double kP = 0.0048;
+   public static double kP = 0;
    public static double kI = 0;
    public static double kD = 0;
-   public static double kF = 0.000595;
+   public static double kF = 0.00083;
    
    public void runOpMode() throws InterruptedException {
       TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -43,11 +46,13 @@ public class Test extends LinearOpMode {
       
       VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
       
-//      ServoImplEx rampaAng = hardwareMap.get(ServoImplEx.class, "rampAng");
+      ServoImplEx rampaAng = hardwareMap.get(ServoImplEx.class, "rampAng");
       
-      Follower follower;;
+      Follower follower;
+      Drawing.init();
       
       follower = Constants.create(hardwareMap);
+      follower.setPose(new Pose(0, 0));
       follower.update();
       
       PIDFController controller = new PIDFController(kP, kI, kD, kF);
@@ -94,6 +99,7 @@ public class Test extends LinearOpMode {
          //odometrie
          follower.update();
          Pose pose = follower.pose();
+         Drawing.draw(follower.pose());
          
          // Store gamepad values from the previous loop iteration
          previousGamepad1.copy(currentGamepad1);
@@ -124,7 +130,7 @@ public class Test extends LinearOpMode {
             backRight.setPower(backRightPower);
          }
          
-//         rampaAng.setPosition(rampPos);
+         rampaAng.setPosition(rampPos);
          
          //intake
          if (previousGamepad1.a && !currentGamepad1.a) {
@@ -176,6 +182,12 @@ public class Test extends LinearOpMode {
          else
             turret.setPower(0);
          
+         //turret speed
+         if(currentGamepad1.dpad_right && !previousGamepad1.dpad_right)
+            turretSpeed += 100;
+         if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left)
+            if(turretSpeed > 0) turretSpeed -= 100;
+         
          //ramp position
          if(currentGamepad1.dpad_up && !previousGamepad1.dpad_up)
             if(rampPos < 1) rampPos += 0.01;
@@ -189,6 +201,7 @@ public class Test extends LinearOpMode {
          panelsTelemetry.addData("turret state: ", turretState);
          panelsTelemetry.addData("ramp angle", rampPos);
          panelsTelemetry.addData("viteza tureta: ", turret.getVelocity());
+         panelsTelemetry.addData("turretSpeed: ", turretSpeed);
          panelsTelemetry.addData("kF ", kF);
          panelsTelemetry.addData("kP ", kP);
          panelsTelemetry.addData("kI ", kI);
@@ -196,4 +209,5 @@ public class Test extends LinearOpMode {
          panelsTelemetry.update(telemetry);
       }
    }
+   
 }

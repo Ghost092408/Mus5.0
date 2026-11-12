@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
 
+import org.firstinspires.ftc.teamcode.pedro.Drawing;
+
 public class Tests extends Procedure {
     enum Test {
         @DisplayName("Hold Test")
@@ -292,6 +294,7 @@ class TestsLocalization extends TuningOpMode<Boolean> {
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
         localizer.setPose(Pose.zero());
+        Drawing.init();
 
         Thread.sleep(1000);
         waitForStart();
@@ -300,6 +303,7 @@ class TestsLocalization extends TuningOpMode<Boolean> {
         while (opModeIsActive()) {
             drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), true);
             localizer.update();
+            Drawing.draw(localizer.pose());
             telemetry.addData("Pose", localizer.pose());
             telemetry.update();
         }
