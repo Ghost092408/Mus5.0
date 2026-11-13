@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleOps.debug;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.atan;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
@@ -16,7 +19,9 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.controller.PIDFController;
+import com.seattlesolvers.solverslib.pedroCommand.TurnToCommand;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.pedro.Drawing;
 
@@ -26,12 +31,19 @@ import java.util.List;
 @Configurable
 public class Test extends LinearOpMode {
    public static double turretSpeed = 0;
-   public static double rampPos = 0.01;
+   public static double rampPos = 0.02;
    
-   public static double kP = 0;
+   //test localizare
+   private static final double FIELD_CENTER = 7.87;
+   public static double x2 = 72 - FIELD_CENTER;
+   public static double y2 = 72 - FIELD_CENTER;
+   private static double angle = -1;
+   
+   //valori PIDF tureta
+   public static double kP = 0.007;
    public static double kI = 0;
    public static double kD = 0;
-   public static double kF = 0.00083;
+   public static double kF = 0.00053;
    
    public void runOpMode() throws InterruptedException {
       TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -65,6 +77,7 @@ public class Test extends LinearOpMode {
       frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
       backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
       backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+      turret.setDirection(DcMotorSimple.Direction.REVERSE);
       
       turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
       turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -194,9 +207,37 @@ public class Test extends LinearOpMode {
          if(currentGamepad1.dpad_down && !previousGamepad1.dpad_down)
             if(rampPos > 0) rampPos -= 0.01;
          
+         //turn to hive
+         if(currentGamepad1.touchpad && !previousGamepad1.touchpad) {
+            double x1 = pose.x();
+            double y1 = pose.y();
+            
+            double c1 = abs(x2 - x1);
+            double c2 = abs(y2 - y1);
+            
+            double degrees = Math.toDegrees(atan(c2/c1));
+            
+            if(x2 > x1) {
+               if(y2 > y1)
+                  angle = degrees;
+               else
+                  angle = 360 - degrees;
+            }else {
+               if(y2 > y1)
+                  angle = 180 - degrees;
+               else
+                  angle = 180 + degrees;
+            }
+            
+            Drawing.drawPoint(x2, y2);
+         }
+         
          //telemetry
          panelsTelemetry.addData("x: ", pose.x());
          panelsTelemetry.addData("y: ", pose.y());
+         panelsTelemetry.addData("x2: ", x2);
+         panelsTelemetry.addData("y2: ", y2);
+         panelsTelemetry.addData("angle: ", angle);
          panelsTelemetry.addData("heading: ", Math.toDegrees(pose.heading()));
          panelsTelemetry.addData("turret state: ", turretState);
          panelsTelemetry.addData("ramp angle", rampPos);
