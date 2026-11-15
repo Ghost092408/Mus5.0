@@ -23,12 +23,12 @@ public class LocalisationSubsystem extends SubsystemBase {
    }
    
    public double dist(double x2, double y2){
-      Pose pose = follower.pose();
-      
-      double x1 = pose.x();
-      double y1 = pose.y();
-      
-      return Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
+            Pose pose = follower.pose();
+            
+            double x1 = pose.x();
+            double y1 = pose.y();
+            
+            return Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
    }
    
    public double getAngle (double x2, double y2) {

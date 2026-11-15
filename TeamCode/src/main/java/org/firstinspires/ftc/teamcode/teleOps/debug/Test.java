@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleOps.debug;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.atan;
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
@@ -15,9 +12,10 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.seattlesolvers.solverslib.command.Command;
+import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 import com.seattlesolvers.solverslib.pedroCommand.TurnToCommand;
 
@@ -34,19 +32,22 @@ public class Test extends LinearOpMode {
    public static double rampPos = 0.02;
    
    //test localizare
-   private static final double FIELD_CENTER = 7.87;
-   public static double x2 = 72 - FIELD_CENTER;
-   public static double y2 = 72 - FIELD_CENTER;
+   private static final double ROBOT_RADIUS = 7.87;
+   public static double x2 = 60 - ROBOT_RADIUS;
+   public static double y2 = 59 - ROBOT_RADIUS;
    private static double angle = -1;
+   private static double dist = 0;
    
    //valori PIDF tureta
-   public static double kP = 0.007;
+   public static double kP = 0.013;
    public static double kI = 0;
    public static double kD = 0;
-   public static double kF = 0.00053;
+   public static double kF = 0.0005;
    
    public void runOpMode() throws InterruptedException {
       TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+      
+      Command turnCommand = null;
       
       DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "stangaFata");
       DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "dreaptaFata");
@@ -89,6 +90,7 @@ public class Test extends LinearOpMode {
       boolean transferStateR = false;
       boolean turretState = false;
       boolean drivingState = true;
+      boolean lookState = false;
       
       Gamepad currentGamepad1 = new Gamepad();
       Gamepad currentGamepad2 = new Gamepad();
@@ -136,7 +138,7 @@ public class Test extends LinearOpMode {
          //miscare
          if(previousGamepad1.touchpad && !currentGamepad1.touchpad)
             drivingState = !drivingState;
-         if (drivingState) {
+         if (drivingState && !lookState) {
             frontLeft.setPower(frontLeftPower);
             backLeft.setPower(backLeftPower);
             frontRight.setPower(frontRightPower);
@@ -208,29 +210,34 @@ public class Test extends LinearOpMode {
             if(rampPos > 0) rampPos -= 0.01;
          
          //turn to hive
-         if(currentGamepad1.touchpad && !previousGamepad1.touchpad) {
-            double x1 = pose.x();
-            double y1 = pose.y();
+         double x1 = pose.x();
+         double y1 = pose.y();
+         
+         if (currentGamepad1.touchpad && !previousGamepad1.touchpad) {
+            lookState = !lookState;
             
-            double c1 = abs(x2 - x1);
-            double c2 = abs(y2 - y1);
+            if (!lookState) {
+               if (turnCommand != null) {
+                  turnCommand.cancel();
+                  turnCommand = null;
+               }
+               follower.stop();
+            }
+         }
+         
+         if (lookState) {
+            angle = Math.toDegrees(Math.atan2(y2 - y1, x2 - x1));
             
-            double degrees = Math.toDegrees(atan(c2/c1));
-            
-            if(x2 > x1) {
-               if(y2 > y1)
-                  angle = degrees;
-               else
-                  angle = 360 - degrees;
-            }else {
-               if(y2 > y1)
-                  angle = 180 - degrees;
-               else
-                  angle = 180 + degrees;
+            if (turnCommand == null) {
+               turnCommand = new TurnToCommand(follower, angle, AngleUnit.DEGREES);
+               CommandScheduler.getInstance().schedule(turnCommand);
             }
             
             Drawing.drawPoint(x2, y2);
          }
+         
+         //distanta
+         dist = Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
          
          //telemetry
          panelsTelemetry.addData("x: ", pose.x());
@@ -242,7 +249,7 @@ public class Test extends LinearOpMode {
          panelsTelemetry.addData("turret state: ", turretState);
          panelsTelemetry.addData("ramp angle", rampPos);
          panelsTelemetry.addData("viteza tureta: ", turret.getVelocity());
-         panelsTelemetry.addData("turretSpeed: ", turretSpeed);
+         panelsTelemetry.addData("dist: ", dist);
          panelsTelemetry.addData("kF ", kF);
          panelsTelemetry.addData("kP ", kP);
          panelsTelemetry.addData("kI ", kI);

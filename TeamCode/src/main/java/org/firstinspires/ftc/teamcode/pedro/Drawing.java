@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Drawing {
    private static final double ROBOT_RADIUS = 7.87;
-   private static final double FIELD_CENTER = 7.87;
+   private static final double FIELD_CENTER = -72 + ROBOT_RADIUS;
    private static final double TRAIL_STEP = 0.25;
    private static final int MAX_TRAIL = 400;
    
@@ -20,7 +20,7 @@ public class Drawing {
    private static final List<Pose> trail = new ArrayList<>();
    
    public static void init() {
-      field.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
+      field.setOffsets(PanelsField.INSTANCE.getPresets().getPANELS());
       trail.clear();
    }
    
