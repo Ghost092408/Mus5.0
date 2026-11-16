@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.pedro.Drawing.ROBOT_RADIUS;
 import static java.lang.Math.abs;
 import static java.lang.Math.atan;
 
@@ -13,7 +14,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 public class LocalisationSubsystem extends SubsystemBase {
-   private static final double FIELD_CENTER = 7.87;
    Follower follower;
    
    public LocalisationSubsystem(HardwareMap hardwareMap) {
@@ -23,12 +23,12 @@ public class LocalisationSubsystem extends SubsystemBase {
    }
    
    public double dist(double x2, double y2){
-            Pose pose = follower.pose();
-            
-            double x1 = pose.x();
-            double y1 = pose.y();
-            
-            return Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
+      Pose pose = follower.pose();
+      
+      double x1 = pose.x();
+      double y1 = pose.y();
+      
+      return Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
    }
    
    public double getAngle (double x2, double y2) {
@@ -37,32 +37,9 @@ public class LocalisationSubsystem extends SubsystemBase {
       double x1 = pose.x();
       double y1 = pose.y();
       
-      x2 += FIELD_CENTER;
-      y2 += FIELD_CENTER;
+      x2 -= ROBOT_RADIUS;
+      y2 -= ROBOT_RADIUS;
       
-      double c1 = abs(x2 - x1);
-      double c2 = abs(y2 - y1);
-      
-      double angle = -1;
-      double degrees = Math.toDegrees(atan(c2/c1));
-      
-      
-      if(x2 > x1) {
-         if(y2 > y1)
-            angle = degrees;
-         else
-            angle = 360 - degrees;
-      }else {
-         if(y2 > y1)
-            angle = 180 - degrees;
-         else
-            angle = 180 + degrees;
-      }
-      
-      return angle;
-   }
-   
-   public void turnTo(double angle) {
-      new TurnToCommand(follower, angle, AngleUnit.DEGREES);
+      return Math.toDegrees(Math.atan2(y2 - y1, x2 - x1));
    }
 }

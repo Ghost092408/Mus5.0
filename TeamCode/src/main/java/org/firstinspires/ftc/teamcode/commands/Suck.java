@@ -17,7 +17,10 @@ public class Suck extends CommandBase {
    public void initialize() { telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); }
    
    @Override
-   public void execute() { intake.suge(); }
+   public void execute() {
+      intake.setPowInt(1);
+      intake.setPowTrans(1);
+   }
    
    @Override
    public void end(boolean interrupted) { intake.stop(); }

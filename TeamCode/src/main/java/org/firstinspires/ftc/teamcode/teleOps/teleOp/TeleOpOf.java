@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.teleOps.teleOp;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -27,21 +29,20 @@ public class TeleOpOf extends OpMode {
    
    private Follower follower;
    
-   private GamepadEx gamepad;
-   
-   private IntakeSubsystem intake;
-   private TurretSubsystem turret;
-   
    @Override
    public void init() {
       telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
       
       follower = Constants.create(hardwareMap);
+      follower.setPose(new Pose(0, 0, 0));
       follower.update();
       
-      gamepad = new GamepadEx(gamepad1);
+      GamepadEx gamepad = new GamepadEx(gamepad1);
       
       //subsysteme
+      TurretSubsystem turret;
+      IntakeSubsystem intake;
+      
       {
          intake = new IntakeSubsystem(hardwareMap);
          turret = new TurretSubsystem(hardwareMap);
@@ -61,16 +62,18 @@ public class TeleOpOf extends OpMode {
       follower.update();
       telemetryM.update();
       
+      Pose pose = follower.pose();
+      
       CommandScheduler.getInstance().run();
       
-      //miscare - robot centric
-      follower.manual(
+      //miscare - field centric
+      DrivePowers powers = ManualDrive.fieldCentric(
          -gamepad1.left_stick_y,
          -gamepad1.left_stick_x,
-         -gamepad1.right_stick_x
+         -gamepad1.right_stick_x,
+         follower.pose().heading()
       );
-      
-      Pose pose = follower.pose();
+      follower.manual(powers);
       
       //telemetrie
       telemetryM.debug("x: ", pose.x());

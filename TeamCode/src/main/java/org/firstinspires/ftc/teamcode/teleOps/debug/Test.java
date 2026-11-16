@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleOps.debug;
 
+import static org.firstinspires.ftc.teamcode.pedro.Drawing.ROBOT_RADIUS;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
@@ -14,6 +16,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.controller.PIDFController;
@@ -29,20 +32,18 @@ import java.util.List;
 @Configurable
 public class Test extends LinearOpMode {
    public static double turretSpeed = 0;
-   public static double rampPos = 0.02;
+   public static double rampPos = 0.04;
    
    //test localizare
-   private static final double ROBOT_RADIUS = 7.87;
    public static double x2 = 60 - ROBOT_RADIUS;
    public static double y2 = 59 - ROBOT_RADIUS;
    private static double angle = -1;
-   private static double dist = 0;
    
    //valori PIDF tureta
-   public static double kP = 0.013;
+   public static double kP = 0.0072;
    public static double kI = 0;
    public static double kD = 0;
-   public static double kF = 0.0005;
+   public static double kF = 0.000558;
    
    public void runOpMode() throws InterruptedException {
       TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -69,12 +70,13 @@ public class Test extends LinearOpMode {
       follower.update();
       
       PIDFController controller = new PIDFController(kP, kI, kD, kF);
+      ElapsedTime turretTimer = new ElapsedTime();
       
       frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
       frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
       backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
       backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+      
       frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
       backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
       backRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -89,6 +91,8 @@ public class Test extends LinearOpMode {
       boolean transferState = false;
       boolean transferStateR = false;
       boolean turretState = false;
+      boolean turretAtTarget = false;
+      double turretRampTime = 0;
       boolean drivingState = true;
       boolean lookState = false;
       
@@ -189,10 +193,21 @@ public class Test extends LinearOpMode {
          if (previousGamepad1.right_bumper && !currentGamepad1.right_bumper) {
             turretState = !turretState;
             controller.reset();
+            if (turretState) {
+               turretTimer.reset();
+               turretAtTarget = false;
+            }
          }
          if (turretState) {
-            controller.setPIDF(kP, kI, kD, kF * 12.0 / battery.getVoltage());
-            turret.setPower(controller.calculate(turret.getVelocity(), turretSpeed));
+            if (!controller.atSetPoint()) controller.setPIDF(kP, kI, kD, kF);
+            else controller.setPIDF(0, 0, 0, kF);
+            turret.setPower(controller.calculate(turret.getVelocity(), turretSpeed) * 12.0 / battery.getVoltage());
+            
+            //ramp-up timer: marks the moment the flywheel first reaches target speed
+            if (!turretAtTarget && controller.atSetPoint()) {
+               turretRampTime = turretTimer.seconds();
+               turretAtTarget = true;
+            }
          }
          else
             turret.setPower(0);
@@ -237,7 +252,7 @@ public class Test extends LinearOpMode {
          }
          
          //distanta
-         dist = Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
+         double dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
          
          //telemetry
          panelsTelemetry.addData("x: ", pose.x());
@@ -247,6 +262,7 @@ public class Test extends LinearOpMode {
          panelsTelemetry.addData("angle: ", angle);
          panelsTelemetry.addData("heading: ", Math.toDegrees(pose.heading()));
          panelsTelemetry.addData("turret state: ", turretState);
+         panelsTelemetry.addData("turret ramp time (s): ", turretAtTarget ? turretRampTime : "ramping...");
          panelsTelemetry.addData("ramp angle", rampPos);
          panelsTelemetry.addData("viteza tureta: ", turret.getVelocity());
          panelsTelemetry.addData("dist: ", dist);

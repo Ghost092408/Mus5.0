@@ -12,23 +12,14 @@ import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 public class TurretSubsystem {
    private final MotorEx flywheel;
    
-//   private final ServoEx turretAng;
-//   private final ServoEx limba;
+   private final ServoEx limba;
    
-   public static double kP = 0;
-   public static double kI = 0;
-   public static double kD = 0;
-   public static double kF = 0;
-   
-   private final PIDFController velocityController = new PIDFController(kP, kI, kD, kF);
-   
-   private double targetVelocity = 0;
+   public double targetVelocity = 0;
    
    public TurretSubsystem(HardwareMap hardwareMap) {
       flywheel = new MotorEx(hardwareMap, "turret");
       
-//      turretAng = new ServoEx(hardwareMap, "turretAng");
-//      limba = new ServoEx(hardwareMap, "limba");
+      limba = new ServoEx(hardwareMap, "rampAng");
       
       flywheel.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
       
@@ -39,27 +30,17 @@ public class TurretSubsystem {
       targetVelocity = ticksPerSecond;
    }
    
+   public void setPower(double pow) { flywheel.set(pow); }
+   
    public double getVelocity() {
       return flywheel.getVelocity();
    }
    
    public boolean atSpeed() {
-      return Math.abs(targetVelocity - flywheel.getVelocity()) < 10;
+      return Math.abs(targetVelocity - flywheel.getVelocity()) < 20;
    }
    
-   public void stop() {
-      setSpeed(0);
-      update();
-   }
+   public void stop() { setSpeed(0); }
    
-   public void update() {
-      if (targetVelocity == 0) {
-         velocityController.reset();
-         flywheel.set(0);
-         return;
-      }
-      velocityController.setPIDF(kP, kI, kD, kF);
-      double power = velocityController.calculate(flywheel.getVelocity(), targetVelocity);
-      flywheel.set(Range.clip(power, 0, 1));
-   }
+   public void setAngle(double x) { limba.set(x); }
 }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
+import com.seattlesolvers.solverslib.controller.PIDFController;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 
@@ -22,15 +23,9 @@ public class IntakeSubsystem extends SubsystemBase {
       intake.setInverted(true);
    }
    
-   public void suge() {
-      intake.set(1);
-      transfer.set(1);
-   }
+   public void setPowInt (double pow) { intake.set(pow); }
    
-   public void scuipa() {
-      intake.set(-1);
-      transfer.set(-1);
-   }
+   public void setPowTrans (double pow) { transfer.set(pow); }
    
    public void stop() {
       intake.set(0);
