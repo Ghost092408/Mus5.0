@@ -58,9 +58,9 @@ public class Test extends LinearOpMode {
       DcMotorEx transfer = hardwareMap.get(DcMotorEx.class, "transfer");
       DcMotorEx turret = hardwareMap.get(DcMotorEx.class, "turret");
       
-      VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
-      
       ServoImplEx rampaAng = hardwareMap.get(ServoImplEx.class, "rampAng");
+      
+      VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
       
       Follower follower;
       Drawing.init();
