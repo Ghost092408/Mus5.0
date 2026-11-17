@@ -40,10 +40,10 @@ public class Test extends LinearOpMode {
    private static double angle = -1;
    
    //valori PIDF tureta
-   public static double kP = 0.0072;
+   public static double kP = 0.0032;
    public static double kI = 0;
    public static double kD = 0;
-   public static double kF = 0.000558;
+   public static double kF = 0.00049;
    
    public void runOpMode() throws InterruptedException {
       TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -191,6 +191,9 @@ public class Test extends LinearOpMode {
          
          //turret PIDF
          if (previousGamepad1.right_bumper && !currentGamepad1.right_bumper) {
+            double turretTolerance = 25;
+            controller.setTolerance(turretTolerance);
+            
             turretState = !turretState;
             controller.reset();
             if (turretState) {
@@ -257,19 +260,14 @@ public class Test extends LinearOpMode {
          //telemetry
          panelsTelemetry.addData("x: ", pose.x());
          panelsTelemetry.addData("y: ", pose.y());
+         panelsTelemetry.addData("heading: ", Math.toDegrees(pose.heading()));
          panelsTelemetry.addData("x2: ", x2);
          panelsTelemetry.addData("y2: ", y2);
          panelsTelemetry.addData("angle: ", angle);
-         panelsTelemetry.addData("heading: ", Math.toDegrees(pose.heading()));
-         panelsTelemetry.addData("turret state: ", turretState);
          panelsTelemetry.addData("turret ramp time (s): ", turretAtTarget ? turretRampTime : "ramping...");
          panelsTelemetry.addData("ramp angle", rampPos);
          panelsTelemetry.addData("viteza tureta: ", turret.getVelocity());
          panelsTelemetry.addData("dist: ", dist);
-         panelsTelemetry.addData("kF ", kF);
-         panelsTelemetry.addData("kP ", kP);
-         panelsTelemetry.addData("kI ", kI);
-         panelsTelemetry.addData("kD ", kD);
          panelsTelemetry.update(telemetry);
       }
    }
