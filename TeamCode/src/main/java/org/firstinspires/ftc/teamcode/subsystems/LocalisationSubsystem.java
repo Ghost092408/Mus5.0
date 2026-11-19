@@ -22,7 +22,7 @@ public class LocalisationSubsystem extends SubsystemBase {
       follower.update();
    }
    
-   public double dist(double x2, double y2){
+   public double getDist(double x2, double y2){
       Pose pose = follower.pose();
       
       double x1 = pose.x();

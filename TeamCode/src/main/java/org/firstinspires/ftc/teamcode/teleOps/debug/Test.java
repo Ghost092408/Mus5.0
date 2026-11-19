@@ -31,12 +31,17 @@ import java.util.List;
 @TeleOp
 @Configurable
 public class Test extends LinearOpMode {
-   public static double turretSpeed = 0;
+   public static double turretSpeed = 1000;
    public static double rampPos = 0.04;
    
    //test localizare
-   public static double x2 = 60 - ROBOT_RADIUS;
-   public static double y2 = 59 - ROBOT_RADIUS;
+   double dist;
+   //coord hive1
+   public static double hive1x = 60 - ROBOT_RADIUS;
+   public static double hive1y = 59 - ROBOT_RADIUS;
+   //coord hive2
+   public static double hive2x = 84 - ROBOT_RADIUS;
+   public static double hive2y = 59 - ROBOT_RADIUS;
    private static double angle = -1;
    
    //valori PIDF tureta
@@ -149,7 +154,11 @@ public class Test extends LinearOpMode {
             backRight.setPower(backRightPower);
          }
          
-         rampaAng.setPosition(rampPos);
+         //distanta pana la hive
+         if(pose.x() < 72)
+            dist = Math.sqrt((hive1x-pose.x())*(hive1x-pose.x())+(hive1y-pose.y())*(hive1y-pose.y()));
+         else
+            dist = Math.sqrt((hive2x-pose.x())*(hive2x-pose.x())+(hive2y-pose.y())*(hive2y-pose.y()));
          
          //intake
          if (previousGamepad1.a && !currentGamepad1.a) {
@@ -206,6 +215,15 @@ public class Test extends LinearOpMode {
             else controller.setPIDF(0, 0, 0, kF);
             turret.setPower(controller.calculate(turret.getVelocity(), turretSpeed) * 12.0 / battery.getVoltage());
             
+            //LUT
+            double
+               dist2 = dist * dist,
+               dist3 = dist2 * dist,
+               dist4 = dist3 * dist;
+            rampPos = -0.00003892155 * dist4 + 0.007419355 * dist3 - 0.5288573 * dist2 + 16.71469 * dist - 197.50988;
+            
+            rampaAng.setPosition(Math.clamp(rampPos, 0.1, 0.27));
+            
             //ramp-up timer: marks the moment the flywheel first reaches target speed
             if (!turretAtTarget && controller.atSetPoint()) {
                turretRampTime = turretTimer.seconds();
@@ -215,22 +233,7 @@ public class Test extends LinearOpMode {
          else
             turret.setPower(0);
          
-         //turret speed
-         if(currentGamepad1.dpad_right && !previousGamepad1.dpad_right)
-            turretSpeed += 100;
-         if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left)
-            if(turretSpeed > 0) turretSpeed -= 100;
-         
-         //ramp position
-         if(currentGamepad1.dpad_up && !previousGamepad1.dpad_up)
-            if(rampPos < 1) rampPos += 0.01;
-         if(currentGamepad1.dpad_down && !previousGamepad1.dpad_down)
-            if(rampPos > 0) rampPos -= 0.01;
-         
          //turn to hive
-         double x1 = pose.x();
-         double y1 = pose.y();
-         
          if (currentGamepad1.touchpad && !previousGamepad1.touchpad) {
             lookState = !lookState;
             
@@ -244,25 +247,25 @@ public class Test extends LinearOpMode {
          }
          
          if (lookState) {
-            angle = Math.toDegrees(Math.atan2(y2 - y1, x2 - x1));
+            if (pose.x() < 72) {
+               angle = Math.toDegrees(Math.atan2(hive1y-pose.y(), hive1x-pose.x()));
+               Drawing.drawPoint(hive1x, hive1y);
+            }
+            else {
+               angle = Math.toDegrees(Math.atan2(hive2y-pose.y(), hive2x-pose.x()));
+               Drawing.drawPoint(hive2x, hive2y);
+            }
             
             if (turnCommand == null) {
                turnCommand = new TurnToCommand(follower, angle, AngleUnit.DEGREES);
                CommandScheduler.getInstance().schedule(turnCommand);
             }
-            
-            Drawing.drawPoint(x2, y2);
          }
-         
-         //distanta
-         double dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
          
          //telemetry
          panelsTelemetry.addData("x: ", pose.x());
          panelsTelemetry.addData("y: ", pose.y());
          panelsTelemetry.addData("heading: ", Math.toDegrees(pose.heading()));
-         panelsTelemetry.addData("x2: ", x2);
-         panelsTelemetry.addData("y2: ", y2);
          panelsTelemetry.addData("angle: ", angle);
          panelsTelemetry.addData("turret ramp time (s): ", turretAtTarget ? turretRampTime : "ramping...");
          panelsTelemetry.addData("ramp angle", rampPos);

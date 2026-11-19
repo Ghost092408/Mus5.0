@@ -18,8 +18,10 @@ import com.bylazar.telemetry.TelemetryManager;
 import org.firstinspires.ftc.teamcode.commands.Launch;
 import org.firstinspires.ftc.teamcode.commands.Spit;
 import org.firstinspires.ftc.teamcode.commands.Suck;
+import org.firstinspires.ftc.teamcode.commands.TurnToHive;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.LocalisationSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 
 @TeleOp (name = "TeleOpOf")
@@ -42,10 +44,12 @@ public class TeleOpOf extends OpMode {
       //subsysteme
       TurretSubsystem turret;
       IntakeSubsystem intake;
+      LocalisationSubsystem localisation;
       
       {
          intake = new IntakeSubsystem(hardwareMap);
          turret = new TurretSubsystem(hardwareMap);
+         localisation = new LocalisationSubsystem(hardwareMap);
       }
       
       //buttoane
@@ -55,6 +59,8 @@ public class TeleOpOf extends OpMode {
          .toggleWhenPressed( new Spit(intake) );
      new GamepadButton(gamepad, GamepadKeys.Button.DPAD_UP)
         .toggleWhenPressed( new Launch(turret, intake) );
+     new GamepadButton(gamepad, GamepadKeys.Button.TOUCHPAD)
+        .toggleWhenPressed( new TurnToHive(localisation) );
    }
    
    @Override
