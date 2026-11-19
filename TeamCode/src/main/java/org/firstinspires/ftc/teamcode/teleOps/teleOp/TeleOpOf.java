@@ -58,9 +58,9 @@ public class TeleOpOf extends OpMode {
       new GamepadButton(gamepad, GamepadKeys.Button.CIRCLE)
          .toggleWhenPressed( new Spit(intake) );
      new GamepadButton(gamepad, GamepadKeys.Button.DPAD_UP)
-        .toggleWhenPressed( new Launch(turret, intake) );
+        .toggleWhenPressed( new Launch(turret, intake, localisation) );
      new GamepadButton(gamepad, GamepadKeys.Button.TOUCHPAD)
-        .toggleWhenPressed( new TurnToHive(localisation) );
+        .toggleWhenPressed( new TurnToHive(follower, localisation) );
    }
    
    @Override

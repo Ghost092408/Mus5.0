@@ -58,15 +58,17 @@ public class Launch extends CommandBase {
          dist2 = dist * dist,
          dist3 = dist2 * dist,
          dist4 = dist3 * dist;
+      
       double rampPos = -0.00003892155 * dist4 + 0.007419355 * dist3 - 0.5288573 * dist2 + 16.71469 * dist - 197.50988;
       
-      new TurnToHive(localisation);
       turret.setSpeed(1000);
       turret.setAngle(rampPos);
       controller.setPIDF(kP, kI, kD, kF * 12.0 / battery.getVoltage());
       turret.setPower(controller.calculate(turret.getVelocity(), turret.targetVelocity));
-      if(turret.atSpeed())
-         new Suck(intake);
+      if(turret.atSpeed()) {
+         intake.setPowInt(1);
+         intake.setPowTrans(1);
+      }
       
       telemetryM.addData("viteza: ", turret.getVelocity());
    }
