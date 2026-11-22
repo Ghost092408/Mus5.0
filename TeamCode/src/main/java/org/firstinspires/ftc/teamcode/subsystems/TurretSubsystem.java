@@ -23,7 +23,7 @@ public class TurretSubsystem {
       
       flywheel.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
       
-      flywheel.setRunMode(Motor.RunMode.RawPower);
+       flywheel.setRunMode(Motor.RunMode.RawPower);
    }
    
    public void setSpeed(double ticksPerSecond) {
