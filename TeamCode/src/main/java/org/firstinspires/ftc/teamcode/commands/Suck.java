@@ -19,7 +19,7 @@ public class Suck extends CommandBase {
    @Override
    public void execute() {
       intake.setPowInt(1);
-      intake.setPowTrans(1);
+      intake.setPowTrans(0);
    }
    
    @Override

@@ -7,7 +7,6 @@ import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.command.button.GamepadButton;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
@@ -49,7 +48,7 @@ public class TeleOpOf extends OpMode {
       {
          intake = new IntakeSubsystem(hardwareMap);
          turret = new TurretSubsystem(hardwareMap);
-         localisation = new LocalisationSubsystem(hardwareMap);
+         localisation = new LocalisationSubsystem(hardwareMap, follower);
       }
       
       //buttoane
@@ -58,7 +57,7 @@ public class TeleOpOf extends OpMode {
       new GamepadButton(gamepad, GamepadKeys.Button.CIRCLE)
          .toggleWhenPressed( new Spit(intake) );
      new GamepadButton(gamepad, GamepadKeys.Button.DPAD_UP)
-        .toggleWhenPressed( new Launch(turret, intake, localisation) );
+        .toggleWhenPressed( new Launch(hardwareMap, turret, intake, localisation) );
      new GamepadButton(gamepad, GamepadKeys.Button.TOUCHPAD)
         .toggleWhenPressed( new TurnToHive(follower, localisation) );
    }
@@ -72,14 +71,20 @@ public class TeleOpOf extends OpMode {
       
       CommandScheduler.getInstance().run();
       
-      //miscare - field centric
-      DrivePowers powers = ManualDrive.fieldCentric(
-         -gamepad1.left_stick_y,
-         -gamepad1.left_stick_x,
-         -gamepad1.right_stick_x,
-         follower.pose().heading()
-      );
-      follower.manual(powers);
+      //miscare - field centric doar cand joystick-urile sunt folosite
+      double yVal = -gamepad1.left_stick_y;
+      double xVal = -gamepad1.left_stick_x;
+      double rxVal = -gamepad1.right_stick_x;
+
+      if (Math.hypot(xVal, yVal) > 0.05 || Math.abs(rxVal) > 0.05) {
+         DrivePowers powers = ManualDrive.fieldCentric(
+            yVal,
+            xVal,
+            rxVal,
+            follower.pose().heading()
+         );
+         follower.manual(powers);
+      }
       
       //telemetrie
       telemetryM.debug("x: ", pose.x());

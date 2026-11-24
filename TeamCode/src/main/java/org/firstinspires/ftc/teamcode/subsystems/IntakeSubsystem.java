@@ -20,7 +20,7 @@ public class IntakeSubsystem extends SubsystemBase {
       intake.setRunMode(Motor.RunMode.RawPower);
       transfer.setRunMode(Motor.RunMode.RawPower);
       
-      intake.setInverted(true);
+      transfer.setInverted(true);
    }
    
    public void setPowInt (double pow) { intake.set(pow); }

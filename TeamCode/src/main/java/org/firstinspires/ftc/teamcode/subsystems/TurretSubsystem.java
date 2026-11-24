@@ -24,6 +24,8 @@ public class TurretSubsystem {
       flywheel.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
       
       flywheel.setRunMode(Motor.RunMode.RawPower);
+      
+      flywheel.setInverted(true);
    }
    
    public void setSpeed(double ticksPerSecond) {
@@ -37,7 +39,7 @@ public class TurretSubsystem {
    }
    
    public boolean atSpeed() {
-      return Math.abs(targetVelocity - flywheel.getVelocity()) < 20;
+      return targetVelocity > 100 && Math.abs(targetVelocity - flywheel.getVelocity()) < 35;
    }
    
    public void stop() { setSpeed(0); }

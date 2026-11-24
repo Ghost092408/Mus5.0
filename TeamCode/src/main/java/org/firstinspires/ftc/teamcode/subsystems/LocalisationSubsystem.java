@@ -1,28 +1,36 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import static org.firstinspires.ftc.teamcode.pedro.Drawing.ROBOT_RADIUS;
-import static java.lang.Math.abs;
-import static java.lang.Math.atan;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
-import com.seattlesolvers.solverslib.pedroCommand.TurnToCommand;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 public class LocalisationSubsystem extends SubsystemBase {
-   Follower follower;
+   private Follower follower;
    
    public LocalisationSubsystem(HardwareMap hardwareMap) {
-      follower = Constants.create(hardwareMap);
-      
-      follower.update();
+      this.follower = Constants.create(hardwareMap);
+      this.follower.update();
+   }
+
+   public LocalisationSubsystem(Follower follower) {
+      this.follower = follower;
+   }
+
+   public LocalisationSubsystem(HardwareMap hardwareMap, Follower follower) {
+      this.follower = (follower != null) ? follower : Constants.create(hardwareMap);
+   }
+
+   public void setFollower(Follower follower) {
+      this.follower = follower;
    }
    
    public double getDist(double x2, double y2){
+      if (follower == null) return 0;
       Pose pose = follower.pose();
       
       double x1 = pose.x();
@@ -32,6 +40,7 @@ public class LocalisationSubsystem extends SubsystemBase {
    }
    
    public double getAngle (double x2, double y2) {
+      if (follower == null) return 0;
       Pose pose = follower.pose();
       
       double x1 = pose.x();
@@ -41,5 +50,16 @@ public class LocalisationSubsystem extends SubsystemBase {
       y2 -= ROBOT_RADIUS;
       
       return Math.toDegrees(Math.atan2(y2 - y1, x2 - x1));
+   }
+
+   public Pose getPose() {
+      if (follower != null) {
+         return follower.pose();
+      }
+      return new Pose(0, 0, 0);
+   }
+
+   public Follower getFollower() {
+      return follower;
    }
 }
