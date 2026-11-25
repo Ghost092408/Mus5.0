@@ -31,8 +31,8 @@ import java.util.List;
 @TeleOp
 @Configurable
 public class Test extends LinearOpMode {
-   public static double turretSpeed = 1000;
-   public static double rampPos = 0.04;
+   public static double turretSpeed = 0;
+   public static double rampPos = 0.105;
    
    //test localizare
    double dist;
@@ -45,10 +45,10 @@ public class Test extends LinearOpMode {
    private static double angle = -1;
    
    //valori PIDF tureta
-   public static double kP = 0.0032;
+   public static double kP = 0.0007;
    public static double kI = 0;
    public static double kD = 0;
-   public static double kF = 0.00049;
+   public static double kF = 0.00041668;
    
    public void runOpMode() throws InterruptedException {
       TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -62,6 +62,7 @@ public class Test extends LinearOpMode {
       DcMotorEx intake = hardwareMap.get(DcMotorEx.class, "intake");
       DcMotorEx transfer = hardwareMap.get(DcMotorEx.class, "transfer");
       DcMotorEx turret = hardwareMap.get(DcMotorEx.class, "turret");
+      DcMotorEx turret2 = hardwareMap.get(DcMotorEx.class, "turret2");
       
       ServoImplEx rampaAng = hardwareMap.get(ServoImplEx.class, "rampAng");
       
@@ -86,10 +87,12 @@ public class Test extends LinearOpMode {
       backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
       backRight.setDirection(DcMotorSimple.Direction.REVERSE);
       turret.setDirection(DcMotorSimple.Direction.REVERSE);
+      turret2.setDirection(DcMotorSimple.Direction.REVERSE);
       
       turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
       turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
       turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+      turret2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
       
       boolean intakeState = false;
       boolean intakeStateR = false;
@@ -109,14 +112,14 @@ public class Test extends LinearOpMode {
       
       List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
       
-      for (LynxModule hub : allHubs) {
+      for(LynxModule hub : allHubs) {
          hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
       }
       
       waitForStart();
       
       while(opModeIsActive() && !isStopRequested()) {
-         for (LynxModule hub : allHubs) {
+         for(LynxModule hub : allHubs) {
             hub.clearBulkCache();
          }
          
@@ -138,21 +141,23 @@ public class Test extends LinearOpMode {
          double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
          double rx = gamepad1.right_stick_x;
          
-         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-         double frontLeftPower = (y + x + rx) / denominator;
-         double backLeftPower = (y - x + rx) / denominator;
-         double frontRightPower = (y - x - rx) / denominator;
-         double backRightPower = (y + x - rx) / denominator;
+         double denominator = Math.max(Math.abs(y)+Math.abs(x)+Math.abs(rx), 1);
+         double frontLeftPower = (y+x+rx)/denominator;
+         double backLeftPower = (y-x+rx)/denominator;
+         double frontRightPower = (y-x-rx)/denominator;
+         double backRightPower = (y+x-rx)/denominator;
          
          //miscare
          if(previousGamepad1.touchpad && !currentGamepad1.touchpad)
             drivingState = !drivingState;
-         if (drivingState && !lookState) {
+         if(drivingState && !lookState) {
             frontLeft.setPower(frontLeftPower);
             backLeft.setPower(backLeftPower);
             frontRight.setPower(frontRightPower);
             backRight.setPower(backRightPower);
          }
+         
+//         rampaAng.setPosition(rampPos);
          
          //distanta pana la hive
          if(pose.x() < 72)
@@ -161,7 +166,7 @@ public class Test extends LinearOpMode {
             dist = Math.sqrt((hive2x-pose.x())*(hive2x-pose.x())+(hive2y-pose.y())*(hive2y-pose.y()));
          
          //intake
-         if (previousGamepad1.a && !currentGamepad1.a) {
+         if(previousGamepad1.a && !currentGamepad1.a) {
             intakeStateR = false;
             intakeState = !intakeState;
          }
@@ -170,7 +175,7 @@ public class Test extends LinearOpMode {
          else if(!intakeStateR)
             intake.setPower(0);
          
-         if (previousGamepad1.b && !currentGamepad1.b) {
+         if(previousGamepad1.b && !currentGamepad1.b) {
             intakeState = false;
             intakeStateR = !intakeStateR;
          }
@@ -180,7 +185,7 @@ public class Test extends LinearOpMode {
             intake.setPower(0);
          
          //transfer
-         if (previousGamepad1.x && !currentGamepad1.x) {
+         if(previousGamepad1.x && !currentGamepad1.x) {
             transferStateR = false;
             transferState = !transferState;
          }
@@ -189,7 +194,7 @@ public class Test extends LinearOpMode {
          else if(!transferStateR)
             transfer.setPower(0);
          
-         if (previousGamepad1.y && !currentGamepad1.y) {
+         if(previousGamepad1.y && !currentGamepad1.y) {
             transferState = false;
             transferStateR = !transferStateR;
          }
@@ -198,47 +203,67 @@ public class Test extends LinearOpMode {
          else if(!transferState)
             transfer.setPower(0);
          
-         //turret PIDF
-         if (previousGamepad1.right_bumper && !currentGamepad1.right_bumper) {
+         //LUT viteza
+         double
+            dist2 = dist * dist,
+            dist3 = dist2 * dist,
+            dist4 = dist3 * dist;
+         turretSpeed = 0.004735 * dist3 - 0.94012 * dist2 + 65.69454 * dist + 0;
+         
+         if(previousGamepad1.right_bumper && !currentGamepad1.right_bumper) {
             double turretTolerance = 25;
             controller.setTolerance(turretTolerance);
             
             turretState = !turretState;
             controller.reset();
-            if (turretState) {
+            if(turretState) {
                turretTimer.reset();
                turretAtTarget = false;
             }
          }
-         if (turretState) {
-            if (!controller.atSetPoint()) controller.setPIDF(kP, kI, kD, kF);
+         if(turretState) {
+            if(!controller.atSetPoint()) controller.setPIDF(kP, kI, kD, kF);
             else controller.setPIDF(0, 0, 0, kF);
             turret.setPower(controller.calculate(turret.getVelocity(), turretSpeed) * 12.0 / battery.getVoltage());
+            turret2.setPower(controller.calculate(turret.getVelocity(), turretSpeed) * 12.0 / battery.getVoltage());
             
-            //LUT
+            //LUT unghi
             double
-               dist2 = dist * dist,
-               dist3 = dist2 * dist,
-               dist4 = dist3 * dist;
-            rampPos = -0.00003892155 * dist4 + 0.007419355 * dist3 - 0.5288573 * dist2 + 16.71469 * dist - 197.50988;
-            
-            rampaAng.setPosition(Math.clamp(rampPos, 0.1, 0.27));
+               ts2 = turret.getVelocity() * turret.getVelocity(),
+               ts3 = ts2 * turret.getVelocity(),
+               ts4 = ts3 * turret.getVelocity();
+            rampPos = -(5.09117 * Math.pow(10, -9)) * ts3 + 0.0000159194 * ts2 - 0.0122468 * turret.getVelocity();
+
+            rampaAng.setPosition(Math.clamp(rampPos, 0.105, 0.4));
             
             //ramp-up timer: marks the moment the flywheel first reaches target speed
-            if (!turretAtTarget && controller.atSetPoint()) {
+            if(!turretAtTarget && controller.atSetPoint()) {
                turretRampTime = turretTimer.seconds();
                turretAtTarget = true;
             }
-         }
-         else
+         } else {
             turret.setPower(0);
+            turret2.setPower(0);
+         }
+         
+         //modif viteza
+         if(previousGamepad1.dpad_right && !currentGamepad1.dpad_right)
+            turretSpeed += 20;
+         if(previousGamepad1.dpad_left && !currentGamepad1.dpad_left)
+            turretSpeed -= 20;
+
+         //modif unghi
+         if(previousGamepad1.dpad_up && !currentGamepad1.dpad_up)
+            rampPos += 0.01;
+         if(previousGamepad1.dpad_down && !currentGamepad1.dpad_down)
+            rampPos -= 0.01;
          
          //turn to hive
-         if (currentGamepad1.touchpad && !previousGamepad1.touchpad) {
+         if(currentGamepad1.touchpad && !previousGamepad1.touchpad) {
             lookState = !lookState;
             
-            if (!lookState) {
-               if (turnCommand != null) {
+            if(!lookState) {
+               if(turnCommand != null) {
                   turnCommand.cancel();
                   turnCommand = null;
                }
@@ -246,17 +271,16 @@ public class Test extends LinearOpMode {
             }
          }
          
-         if (lookState) {
-            if (pose.x() < 72) {
+         if(lookState) {
+            if(pose.x() < 72) {
                angle = Math.toDegrees(Math.atan2(hive1y-pose.y(), hive1x-pose.x()));
                Drawing.drawPoint(hive1x, hive1y);
-            }
-            else {
+            } else {
                angle = Math.toDegrees(Math.atan2(hive2y-pose.y(), hive2x-pose.x()));
                Drawing.drawPoint(hive2x, hive2y);
             }
             
-            if (turnCommand == null) {
+            if(turnCommand == null) {
                turnCommand = new TurnToCommand(follower, angle, AngleUnit.DEGREES);
                CommandScheduler.getInstance().schedule(turnCommand);
             }
@@ -269,10 +293,10 @@ public class Test extends LinearOpMode {
          panelsTelemetry.addData("angle: ", angle);
          panelsTelemetry.addData("turret ramp time (s): ", turretAtTarget ? turretRampTime : "ramping...");
          panelsTelemetry.addData("ramp angle", rampPos);
+         panelsTelemetry.addData("turretSpeed: ", turretSpeed);
          panelsTelemetry.addData("viteza tureta: ", turret.getVelocity());
          panelsTelemetry.addData("dist: ", dist);
          panelsTelemetry.update(telemetry);
       }
    }
-   
 }
