@@ -63,5 +63,6 @@ public class CameraSubsystem {
     public int BileRobot() {
         return bilerobot;
     }
+    public void reseteazaBileRobot() { bilerobot = 0; }
 }
 

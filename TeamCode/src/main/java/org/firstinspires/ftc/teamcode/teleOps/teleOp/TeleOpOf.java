@@ -79,42 +79,6 @@ public class TeleOpOf extends OpMode {
       {
          gamepad1.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS);
       }
-      if (vedere.VedeBile()  && vedere.BileRobot() <4 )
-      {
-         double y = 0;
-         double x = 0;
-         double rx = 0;
-         double directie = vedere.Directie();
-
-            if (Double.isFinite(directie)) {
-               x = Math.max(-0.25, Math.min(0.25, directie * 0.25));
-
-               if (Math.abs(directie) < 0.2) {
-                  y = 0.2;
-               }
-            }
-         }
-      else if (vedere.BileRobot()==4)
-      {
-         /*if (poz robot == zona in care puteam da shoot )
-          {  transfer.setPower(1);
-            copiat tot shootingul la turret odata ce gata ;
-           }
-         else
-         {
-         cu pedro pahting ceva sa mergem pe partea buna a terenului;
-         transfer.setPower(1);
-         alea shooter din nou;
-
-         }
-         vedere.BileRobot()=0;
-         gamepad1.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS);
-
-         */
-      }
-
-
-      
       CommandScheduler.getInstance().run();
       
       //miscare - robot centric
